@@ -1,0 +1,40 @@
+{% extends 'navbar.html' %}
+{% block container %}
+  <div class="container">
+    <div class="header m-auto">
+      <h1 class="h2">Demo</h1>
+    </div>
+    <div class="row">
+      <div class="col-md-4 mr-auto">
+        <div class="panel panel-primary">
+          <div class="panel-heading h5">Physicians</div>
+          <div class="panel-body fixed-panel">
+            <a href="http://127.0.0.1:8008/dashboard/physician/bob">Bob</a><br>
+            <a href="http://127.0.0.1:8009/dashboard/physician/alice">Alice</a><br>
+            <a href="http://127.0.0.1:8010/dashboard/physician/jane">Jane</a><br>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 mr-auto">
+        <div class="panel panel-primary">
+          <div class="panel-heading h5">Patients</div>
+          <div class="panel-body fixed-panel">
+            <a href="http://127.0.0.1:8005/dashboard/patient/sally">Sally</a><br>
+            <a href="http://127.0.0.1:8006/dashboard/patient/eric">Eric</a><br>
+            <a href="http://127.0.0.1:8007/dashboard/patient/joe">Joe</a><br>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="panel panel-primary">
+          <div class="panel-heading h5">Hospital</div>
+          <div class="panel-body fixed-panel">
+            <a href="http://127.0.0.1:8002/dashboard/hospital/hospital_1">Hospital 1</a><br>
+            <a href="http://127.0.0.1:8003/dashboard/hospital/hospital_2">Hospital 2</a><br>
+            <a href="http://127.0.0.1:8004/dashboard/hospital/hospital_3">Hospital 3</a><br>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

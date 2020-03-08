@@ -1,0 +1,727 @@
+{% extends 'navbar.html' %}
+{% block container %}
+  <div class="container-fluid">
+    <div class="row">
+    {% if entity_type == 'hospital' %}
+      <div class="col-md-6 pl-4 pr-4">
+        <div class="h4">Name: <b>{{ name }}</b></div>
+        <div class="card w-100 mb-2">
+          <div class="card-body">
+            <div class="card-title h5">Database</div>
+            <div class="card-text" id="db-feed">Database stuff</div>
+          </div>
+        </div>
+        <div class="card w-100 mb-2">
+          <div class="card-body">
+            <div class="card-title h5">Staff</div>
+            <div class="card-text" id="staff-feed">Staff</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6 pr-4 pl-4">
+        <div class="card w-100">
+          <div class="card-body">
+            <div class="card-title h5">Logs from Hospital Service</div>
+            <div class="card-text" id="hospital-logs">Logs stuff</div>
+          </div>
+        </div>
+      </div>
+      <script type="text/javascript">
+        function updateDatabase() {
+          $.ajax({
+            url: "/dashboard/hospital/{{ name }}",
+            type: "POST",
+            dataType: 'json',
+            data: {get_db: 'true'},
+            error: function (request, status, error) {
+              alert('Error: ' + error);
+            },
+            success: function (response) {
+              $('#db-feed').html(response);
+            }
+          });
+          updateDatabaseTimer();
+        }
+
+        function updateStaff() {
+            $.ajax({
+                url: "/dashboard/hospital/{{ name }}",
+                type: "POST",
+                dataType: 'json',
+                data: {get_staff: 'true'},
+                error: function (request, status, error) {
+                    alert('Error: ' + error);
+                },
+                success: function (response) {
+                  let hospital_staff_div = $('#staff-feed');
+                  hospital_staff_div.empty();
+                  for (let i = 0; i < response.length; i++){
+                      hospital_staff_div.append('<li>' + response[i] + '</li>');
+                  }
+                }
+            });
+            updateStaffTimer();
+        }
+
+        function updateHospitalLogs() {
+            $.ajax({
+                url: "/dashboard/hospital/{{ name }}",
+                type: "POST",
+                dataType: 'json',
+                data: {update: 'true'},
+                error: function (request, status, error) {
+                    alert('Error: ' + error);
+                },
+                success: function (response) {
+                    let hospital_logs_div = $('#hospital-logs');
+                    hospital_logs_div.empty();
+                    for (let i = 0; i < response.length; i++){
+                        hospital_logs_div.append('<li>' + response[i] + '</li>');
+                    }
+                }
+            });
+            updateHospitalLogsTimer();
+        }
+
+        function updateDatabaseTimer(){
+            setTimeout(function (){updateDatabase()}, 2000);
+        }
+
+        function updateStaffTimer(){
+            setTimeout(function (){updateStaff()}, 2000);
+        }
+
+        function updateHospitalLogsTimer(){
+            setTimeout(function (){updateHospitalLogs()}, 2000);
+        }
+
+        $(document).ready(function() {
+            updateDatabase();
+            updateStaff();
+            updateHospitalLogs();
+        })
+      </script>
+    {% elif entity_type == 'patient' %}
+      <div class="col-md-4 mr-auto pr-4 pl-4">
+        <div class="row">
+          <div class="h4">Name: <b>{{ name }}</b></div>
+        </div>
+        <div class="row">
+          <div class="h4">Patient ID:</div>
+          <div class="h5 text-muted" id="patient-id">N/a</div>
+        </div>
+        <div class="row pb-2">
+          <div class="card w-100">
+            <div class="card-body">
+              <h4 class="card-title">Patient Card</h4>
+              <p class="card-text" id="patient-card"><b>N/a</b></p>
+            </div>
+          </div>
+        </div>
+        <div class="row pb-2">
+          <div class="card w-100">
+            <div class="card-body">
+              <h4 class="card-title">Register at a Hospital</h4>
+              <p class="card-text" id="hospital-listing">Hospital Names as Buttons</p>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <a class="btn btn-danger" onclick="removeCard()" href="#" role="button">Unregister</a>
+        </div>
+      </div>
+      <div class="col-md-8 m-auto pl-4">
+        <div class="d-flex flex-row pb-2 justify-content-between">
+          <div class="card w-100 mr-1">
+            <div class="card-body">
+              <div class="card-title">Read</div>
+            </div>
+            <div class="card-body">
+              <p class="card-text" id="read-hospital-list">Hospital Names as Buttons</p>
+            </div>
+            <div class="card-body">
+              <div class="card-subtitle mb-2 text-muted">Response:</div>
+              <div class="card-text" id="read-output">Output</div>
+            </div>
+          </div>
+          <div class="card w-100 ml-1 mr-1">
+            <div class="card-body">
+              <div class="card-title">Read Physician</div>
+            </div>
+            <div class="card-body">
+              <p class="card-text" id="read-physician-list">Physician Names as Buttons</p>
+            </div>
+            <div class="card-body">
+              <div class="card-subtitle mb-2 text-muted">Response:</div>
+              <div class="card-text" id="read-physician-output">Output</div>
+            </div>
+          </div>
+          <div class="card w-100 ml-1">
+            <div class="card-body">
+              <div class="card-title">Remove</div>
+            </div>
+            <div class="card-body">
+              <p class="card-text" id="remove-hospital-list">Hospital Names as Buttons</p>
+            </div>
+            <div class="card-body">
+              <div class="card-subtitle mb-2 text-muted">Response:</div>
+              <div class="card-text" id="remove-output">Output</div>
+            </div>
+          </div>
+        </div>
+        <div class="d-flex flex-row justify-content-between">
+          <div class="card w-100 mr-1">
+            <div class="card-body">
+              <div class="card-title">Treatment</div>
+            </div>
+            <div class="card-body">
+              <p class="card-text" id="treatment-list">Physician Names as Buttons</p>
+            </div>
+            <div class="card-body">
+              <div class="card-subtitle mb-2 text-muted">Response:</div>
+              <div class="card-text" id="treatment-output">Output</div>
+            </div>
+          </div>
+          <div class="card w-100 mr-1 ml-1">
+            <div class="card-body">
+              <div class="card-title">Transfer</div>
+            </div>
+            <div class="card-body">
+              <div class="form-group">
+                <label for="transfer-source-hospital">Source Hospital</label>
+                <select class="form-control" id="transfer-source-hospital">
+                </select>
+                <label for="transfer-dest-hospital">Destination Hospital</label>
+                <select class="form-control" id="transfer-dest-hospital">
+                </select>
+                <a class="btn btn-primary" href="#" onclick="makeHospTransfer()">Transfer</a>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="card-subtitle mb-2 text-muted">Response:</div>
+              <div class="card-text" id="transfer-output"></div>
+            </div>
+          </div>
+          <div class="card w-100 ml-1">
+            <div class="card-body">
+              <div class="card-title">Physician Transfer</div>
+            </div>
+            <div class="card-body">
+              <p class="card-text" id="physician-transfer-list">TODO</p>
+            </div>
+            <div class="card-body">
+              <div class="card-subtitle mb-2 text-muted">Response:</div>
+              <div class="card-text" id="physician-transfer-output"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <script>
+        function makeHospRegBtn(hosp_name){
+            return '<a class="btn btn-primary mr-1" href="#" onclick="patientRegister(\'' + hosp_name + '\');">' + hosp_name + '<a>';
+        }
+
+        function makeHospReadBtn(hosp_name){
+            return '<a class="btn btn-primary mr-1" href="#" onclick="readRequest(\'' + hosp_name + '\');">' + hosp_name + '<a>';
+        }
+
+        function makeHospRemoveBtn(hosp_name){
+            return '<a class="btn btn-primary mr-1" href="#" onclick="removeRequest(\'' + hosp_name + '\');">' + hosp_name + '<a>';
+        }
+
+        function makePhysReadBtn(phys_name){
+            return '<a class="btn btn-primary mr-1" href="#" onclick="physRead(\'' + phys_name + '\');">' + phys_name + '<a>';
+        }
+
+        function makeTreatmentBtn(phys_name){
+            return '<a class="btn btn-primary mr-1" href="#" onclick="requestTreatment(\'' + phys_name + '\');">' + phys_name + '<a>';
+        }
+
+        function makeHospTransfer(){
+            let src_hosp = $('#transfer-source-hospital option:selected').text();
+            let dest_hosp = $('#transfer-dest-hospital option:selected').text();
+            console.log(src_hosp);
+            console.log(dest_hosp);
+            $.ajax({
+                url: "/dashboard/patient/{{ name }}",
+                type: "POST",
+                dataType: 'json',
+                data: {
+                    transfer: 'true',
+                    src_hospital: src_hosp,
+                    dest_hospital: dest_hosp
+                },
+                error: function (request, status, error) {
+                    alert('Error: ' + error);
+                },
+                success: function (response) {
+                    $('#transfer-output').html(response);
+                }
+            })
+        }
+
+        function removeCard(){
+            $.ajax({
+                url: "/dashboard/patient/{{ name }}",
+                type: "POST",
+                dataType: 'json',
+                data: {remove_card: 'true'},
+                error: function (request, status, error) {
+                    alert('Error: ' + error);
+                },
+                success: function (response) {
+                    $('#patient-card').html(response);
+                }
+            })
+        }
+
+        function getHospitalList() {
+            $.ajax({
+                url: "/dashboard/patient/{{ name }}",
+                type: "POST",
+                dataType: 'json',
+                data: {hospitals: 'true'},
+                error: function (request, status, error) {
+                    alert('Error: ' + error);
+                },
+                success: function (response) {
+                    let hosp_list_div = $('#hospital-listing');
+                    hosp_list_div.empty();
+
+                    let read_hosp_list_div = $('#read-hospital-list');
+                    read_hosp_list_div.empty();
+
+                    let rm_hosp_list_div = $('#remove-hospital-list');
+                    rm_hosp_list_div.empty();
+
+                    let src_div = $('#transfer-source-hospital');
+                    let dest_div = $('#transfer-dest-hospital');
+
+                    let hosp_names = response.split(',');
+                    for (let i = 0; i < hosp_names.length; i++){
+                        if (hosp_names[i] === ""){
+                            // there is a weird blank space that I don't know how to get rid of
+                            continue;
+                        }
+                        let hosp_btn = makeHospRegBtn(hosp_names[i]);
+                        hosp_list_div.append(hosp_btn);
+
+                        let read_hosp_btn = makeHospReadBtn(hosp_names[i]);
+                        read_hosp_list_div.append(read_hosp_btn);
+
+                        let rm_hosp_btn = makeHospRemoveBtn(hosp_names[i]);
+                        rm_hosp_list_div.append(rm_hosp_btn);
+
+                        let option = '<option value=\"' + hosp_names[i] + '\">' + hosp_names[i] + '</option>';
+                        src_div.append(option);
+                        dest_div.append(option);
+                    }
+                }
+            });
+        }
+
+        function getPhysicianList() {
+            $.ajax({
+                url: "/dashboard/patient/{{ name }}",
+                type: "POST",
+                dataType: 'json',
+                data: {physicians: 'true'},
+                error: function (request, status, error) {
+                    alert('Error: ' + error);
+                },
+                success: function (response) {
+                    let phys_list_div = $('#read-physician-list');
+                    phys_list_div.empty();
+
+                    let treatment_list_div = $('#treatment-list');
+                    treatment_list_div.empty();
+
+                    let phys_names = response.split(',');
+                    for (let i = 0; i < phys_names.length; i++){
+                        if (phys_names[i] === ""){
+                            // there is a weird blank space that I don't know how to get rid of
+                            continue;
+                        }
+                        let phys_btn = makePhysReadBtn(phys_names[i]);
+                        phys_list_div.append(phys_btn);
+
+                        let treatment_btn = makeTreatmentBtn(phys_names[i]);
+                        treatment_list_div.append(treatment_btn);
+                    }
+                }
+            });
+        }
+
+        function requestTreatment(physician_name) {
+            $.ajax({
+                url: "/dashboard/patient/{{ name }}",
+                type: "POST",
+                dataType: 'json',
+                data: {treatment: physician_name},
+                error: function (request, status, error) {
+                    alert('Error: ' + error);
+                },
+                success: function (response) {
+                    let treatment_output_div = $('#treatment-output');
+                    treatment_output_div.empty();
+
+                    treatment_output_div.html(response);
+                }
+            });
+        }
+
+        function readRequest(hospital_name) {
+            $.ajax({
+                url: "/dashboard/patient/{{ name }}",
+                type: "POST",
+                dataType: 'json',
+                data: {read: hospital_name},
+                error: function (request, status, error) {
+                    alert('Error: ' + error);
+                },
+                success: function (response) {
+                    let read_output_div = $('#read-output');
+                    read_output_div.empty();
+
+                    read_output_div.html(response);
+                }
+            });
+        }
+
+        function removeRequest(hospital_name) {
+            $.ajax({
+                url: "/dashboard/patient/{{ name }}",
+                type: "POST",
+                dataType: 'json',
+                data: {remove: hospital_name},
+                error: function (request, status, error) {
+                    alert('Error: ' + error);
+                },
+                success: function (response) {
+                    let remove_output_div = $('#remove-output');
+                    remove_output_div.empty();
+
+                    remove_output_div.html(response);
+                }
+            });
+        }
+
+        function patientRegister(hosp_name){
+           $.ajax({
+               url: "/dashboard/patient/{{ name }}",
+               type: "POST",
+               dataType: 'json',
+               data: {register: hosp_name},
+               error: function (request, status, error) {
+                   alert('Error: ' + error);
+               },
+               success: function (response) {
+                if (response === "N/a"){
+                    alert("Unable to register patient.")
+                  } else {
+                    $('#patient-card').html(response);
+                  }
+               }
+           });
+        }
+
+        function physRead(phys_name){
+            $.ajax({
+                url: "/dashboard/patient/{{ name }}",
+                type: "POST",
+                dataType: 'json',
+                data: {physician_read: phys_name},
+                error: function (request, status, error) {
+                    alert('Error: ' + error);
+                },
+                success: function (response) {
+                    let read_phys_output_div = $('#read-physician-output');
+                    read_phys_output_div.empty();
+
+                    read_phys_output_div.html(response);
+                }
+            });
+        }
+
+        function loadCard(){
+            $.ajax({
+                url: "/dashboard/patient/{{ name }}",
+                type: "POST",
+                dataType: 'json',
+                data: {card: 'true'},
+                error: function (request, status, error) {
+                    alert('Error: ' + error);
+                },
+                success: function (response) {
+                    if (response === "N/a"){
+                        $('#patient-card').html(response);
+                    } else {
+                        $('#patient-card').html(response);
+                    }
+                }
+            });
+            loadCardTimer();
+        }
+
+        function getPatientId() {
+            $.ajax({
+                url: "/dashboard/patient/{{ name }}",
+                type: "POST",
+                dataType: 'json',
+                data: {patient_id: 'true'},
+                error: function (request, status, error) {
+                    alert('Error: ' + error);
+                },
+                success: function (response) {
+                  $('#patient-id').html(response);
+                }
+            });
+        }
+
+        function loadCardTimer(){
+          setTimeout(function (){loadCard()}, 2000);
+        }                
+
+        $(document).ready(function() {
+            getPatientId()
+            getHospitalList();
+            getPhysicianList();
+            loadCard();
+        })
+      </script>
+    {% elif entity_type == 'physician' %}
+      <div class="col-md-6">
+        <div class="row">
+          <div class="h4 mr-2 ml-2">Name: <b>{{ name }}</b></div>
+        </div>
+        <div class="row">
+          <div class="h4 mr-2 ml-2" id="physician-id">Physician ID: <b>N/a</b></div>
+        </div>
+        <div class="row">
+          <div class="card w-100 mb-2 ml-2 mr-2">
+            <div class="card-body">
+              <h4 class="card-title">Register at a Hospital</h4>
+              <p class="card-text" id="hospital-listing">Hospital Names as Buttons</p>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="card w-100 mb-2 ml-2 mr-2">
+            <div class="card-body">
+              <h4 class="card-title">Affiliated Hospitals</h4>
+              <p class="card-text" id="affiliated-hospital-listing">Hospital Names</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="row">
+          <div class="card w-100 mb-2 ml-2 mr-2">
+            <div class="card-body">
+              <h4 class="card-title">Treatment</h4>
+            </div>
+            <div class="card-body">
+              <p class="card-text" id="treatment-output">Treatment output</p>
+            </div>
+            <div class="card-body">
+              <form>
+                <div class="form-group">
+                  <input type="text" class="form-control" id="physician-treatment" placeholder="Treatment Info">
+                  <a href="#" class="btn btn-primary" role="button" onclick="submitTreatment()">Submit</a>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="card w-100 mb-2 ml-2 mr-2">
+            <div class="card-body">
+              <h4 class="card-title">Patient Info</h4>
+              <p class="card-text" id="patient-info">Patient Info</p>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="card w-100 mb-2 ml-2 mr-2">
+            <div class="card-body">
+              <h4 class="card-title">Physician Transfer</h4>
+            </div>
+            <div class="card-body">
+              <p class="card-text" id="physician-transfer-output">Physician transfer output</p>
+            </div>
+            <div class="card-body">
+              <form>
+                <div class="form-group">
+                  <input type="text" class="form-control" id="physician-transfer-hospital" placeholder="Hospital Name">
+                  <button type="submit" class="btn btn-primary">Submit</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+      <script>
+        function makeHospRegBtn(hosp_name){
+            return '<a class="btn btn-primary mr-1" href="#" onclick="physicianRegister(\'' + hosp_name + '\');">' + hosp_name + '<a>';
+        }
+
+        function physicianRegister(hosp_name){
+           $.ajax({
+               url: "/dashboard/physician/{{ name }}",
+               type: "POST",
+               dataType: 'json',
+               data: {register: hosp_name},
+               error: function (request, status, error) {
+                   alert('Error: ' + error);
+               },
+           });
+        }        
+
+        function getHospitalList() {
+            $.ajax({
+                url: "/dashboard/physician/{{ name }}",
+                type: "POST",
+                dataType: 'json',
+                data: {hospitals: 'true'},
+                error: function (request, status, error) {
+                    alert('Error: ' + error);
+                },
+                success: function (response) {
+                    let hosp_list_div = $('#hospital-listing');
+                    hosp_list_div.empty();
+
+                    let hosp_names = response.split(',');
+                    for (let i = 0; i < hosp_names.length; i++){
+                        if (hosp_names[i] === ""){
+                            // there is a weird blank space that I don't know how to get rid of
+                            continue;
+                        }
+                        let hosp_btn = makeHospRegBtn(hosp_names[i]);
+                        hosp_list_div.append(hosp_btn);
+                    }
+                }
+            });
+        }
+
+        function getAffiliatedHospitalList() {
+            $.ajax({
+                url: "/dashboard/physician/{{ name }}",
+                type: "POST",
+                dataType: 'json',
+                data: {affiliated_hospitals: 'true'},
+                error: function (request, status, error) {
+                    alert('Error: ' + error);
+                },
+                success: function (response) {
+                    let affil_hosp_list_div = $('#affiliated-hospital-listing');
+                    affil_hosp_list_div.empty();
+
+                    for (let i = 0; i < response.length; i++){
+                        affil_hosp_list_div.append('<li>' + response[i] + '</li>');
+                    }                    
+                }
+            });
+          updateAffiliatedHospitalsTimer();
+        }
+
+        function getPhysicianId() {
+            $.ajax({
+                url: "/dashboard/physician/{{ name }}",
+                type: "POST",
+                dataType: 'json',
+                data: {physician_id: 'true'},
+                error: function (request, status, error) {
+                    alert('Error: ' + error);
+                },
+                success: function (response) {
+                  $('#physician-id').html(response);                   
+                }
+            });
+        }
+
+        function getPatientReadMsgs() {
+            $.ajax({
+                url: "/dashboard/physician/{{ name }}",
+                type: "POST",
+                dataType: 'json',
+                data: {read: 'true'},
+                error: function (request, status, error) {
+                    alert('Error: ' + error);
+                },
+                success: function (response) {
+                  let patient_info_div = $('#patient-info');
+                  patient_info_div.empty();
+                  for (let i = 0; i < response.length; i++){
+                      patient_info_div.append('<li>' + response[i] + '</li>');
+                  }                    
+                }
+            });
+          updatePatientReadMsgsTimer();
+        }       
+
+        function getTreatmentMsgs() {
+            $.ajax({
+                url: "/dashboard/physician/{{ name }}",
+                type: "POST",
+                dataType: 'json',
+                data: {update_phys_treatment_msgs: 'true'},
+                error: function (request, status, error) {
+                    alert('Error: ' + error);
+                },
+                success: function (response) {
+                  let treatment_div = $('#treatment-output');
+                  treatment_div.empty();
+                  for (let i = 0; i < response.length; i++){
+                      treatment_div.append('<li>' + response[i] + '</li>');
+                  }                    
+                }
+            });
+          updateTreatmentMsgsTimer();
+        }                
+
+        function submitTreatment(){
+            note_div = $('#physician-treatment');
+            let notes = note_div.val();
+            $.ajax({
+                url: "/dashboard/physician/{{ name }}",
+                type: "POST",
+                dataType: 'json',
+                data: {submit_treatment: notes},
+                error: function (request, status, error) {
+                    alert('Error: ' + error);
+                },
+                success: function (response) {
+                  let treatment_div = $('#treatment-output');
+                  treatment_div.empty();
+                  alert(response)
+                }
+            });
+            note_div.val('');
+        }
+
+        function updateAffiliatedHospitalsTimer(){
+          setTimeout(function (){getAffiliatedHospitalList()}, 2000);
+        }
+
+        function updatePatientReadMsgsTimer(){
+          setTimeout(function (){getPatientReadMsgs()}, 2000);
+        }
+
+        function updateTreatmentMsgsTimer(){
+          setTimeout(function (){getTreatmentMsgs()}, 2000);
+        }        
+
+        $(document).ready(function() {
+            getPhysicianId()
+            getHospitalList();
+            getAffiliatedHospitalList()
+            getPatientReadMsgs();
+            getTreatmentMsgs()
+        })    
+      </script>
+    {% else %}
+      <div class="h5">Error, entity type not recognized</div>
+    {% endif %}
+    </div>
+  </div>
+{% endblock %}
